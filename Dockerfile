@@ -491,14 +491,11 @@ ENV XMODIFIERS="@im=fcitx5"
 
 # PipeWire and WirePlumber
 RUN \
-    echo "**** Update apt database ****" \
-        && apt-get update \
-    && \
     echo "**** Install PipeWire and WirePlumber ****" \
     mkdir -pm755 /etc/apt/trusted.gpg.d && curl -fsSL "https://keyserver.ubuntu.com/pks/lookup?op=get&search=0xFC43B7352BCC0EC8AF2EEB8B25088A0359807596" | gpg --dearmor -o /etc/apt/trusted.gpg.d/pipewire-debian-ubuntu-pipewire-upstream.gpg && \
     mkdir -pm755 /etc/apt/sources.list.d && echo "deb https://ppa.launchpadcontent.net/pipewire-debian/pipewire-upstream/ubuntu $(grep '^VERSION_CODENAME=' /etc/os-release | cut -d= -f2 | tr -d '\"') main" > "/etc/apt/sources.list.d/pipewire-debian-ubuntu-pipewire-upstream-$(grep '^VERSION_CODENAME=' /etc/os-release | cut -d= -f2 | tr -d '\"').list" && \
     mkdir -pm755 /etc/apt/sources.list.d && echo "deb https://ppa.launchpadcontent.net/pipewire-debian/wireplumber-upstream/ubuntu $(grep '^VERSION_CODENAME=' /etc/os-release | cut -d= -f2 | tr -d '\"') main" > "/etc/apt/sources.list.d/pipewire-debian-ubuntu-wireplumber-upstream-$(grep '^VERSION_CODENAME=' /etc/os-release | cut -d= -f2 | tr -d '\"').list" && \
-    apt-get install --no-install-recommends -y \
+    apt-get update && apt-get install --no-install-recommends -y \
         pipewire \
         pipewire-alsa \
         pipewire-audio-client-libraries \
@@ -596,10 +593,8 @@ RUN \
 
 # Install VirtualGL and make libraries available for preload
 RUN \
-    echo "**** Update apt database ****" \
-        && apt-get update \
-    && \
     echo "**** Install VirtualGL and make libraries available for preload ****" \
+    && \
     cd /tmp && \
    #    VIRTUALGL_VERSION="$(curl -fsSL "https://api.github.com/repos/VirtualGL/virtualgl/releases/latest" | jq -r '.tag_name' | sed 's/[^0-9\.\-]*//g')" && \
        VIRTUALGL_VERSION="3.1.2" && \
