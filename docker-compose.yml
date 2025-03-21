@@ -1,0 +1,134 @@
+---
+version: "3.8"
+
+services:
+  docker-kde-plasma:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: docker-kde-plasma-egl:v0.0.1
+    container_name: docker-kde-plasma
+    restart: unless-stopped
+    ports:
+      - '8080:8080'
+    # Internal TURN server settings
+    #    - '3478:3478'
+    #    - '65534-65535:65534-65535'
+    #    - '3478:3478/udp'
+    #    - '65534-65535:65534-65535/udp'
+    stdin_open: true
+    tty: true
+    ulimits:
+      nofile:
+        soft: 1024
+        hard: 524288
+    cap_add:
+      - NET_ADMIN
+      - SYS_ADMIN
+      - SYS_NICE
+    security_opt:
+      - seccomp:unconfined
+      - apparmor:unconfined
+    tmpfs:
+      - '/dev/shm:rw'
+    # GPU PASSTHROUGH
+    deploy:
+      resources:
+        reservations:
+          # Enable support for NVIDIA GPUs.
+          # 
+          # Ref: https://docs.docker.com/compose/gpu-support/#enabling-gpu-access-to-service-containers
+          devices:
+            - capabilities: [gpu]
+              device_ids: ["${NVIDIA_VISIBLE_DEVICES}"]
+
+    # NETWORK:
+    ## NOTE:  With this configuration, if we do not use the host network, then physical device input
+    ##        is not possible and your USB connected controllers will not work in steam games.
+#    network_mode: host
+    hostname: ${NAME}
+    extra_hosts:
+      - "${NAME}:127.0.0.1"
+    
+    # ENVIRONMENT:
+    ## Read all config variables from the .env file
+    environment:
+      # System
+      - TZ=${TZ}
+      - USER_LOCALES=${USER_LOCALES}
+      - DISPLAY=${DISPLAY}
+#      - DISPLAY_SIZEW=1920
+#      - DISPLAY_SIZEH=1080
+      # User
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - UMASK=${UMASK}
+      - USER_PASSWORD=${USER_PASSWORD}
+      # Mode
+      - MODE=${MODE}
+      # Xorg
+      - FORCE_X11_DUMMY_CONFIG=${FORCE_X11_DUMMY_CONFIG}
+      # Nvidia specific config
+      - NVIDIA_DRIVER_CAPABILITIES=${NVIDIA_DRIVER_CAPABILITIES}
+      - NVIDIA_VISIBLE_DEVICES=${NVIDIA_VISIBLE_DEVICES}
+      - NVIDIA_DRIVER_VERSION=${NVIDIA_DRIVER_VERSION}
+      #      - DISPLAY=:22
+      #      - NGINX_PORT=8082
+      ###
+      # Selkies-GStreamer parameters, for additional configurations see `selkies-gstreamer --help`
+      ###
+      #      - SELKIES_PORT=8083
+      #      - SELKIES_METRICS_HTTP_PORT=9083
+      # Change `SELKIES_ENCODER` to `x264enc`, `vp8enc`, or `vp9enc` if using software fallback without allocated GPUs or your GPU does not support `H.264 (AVCHD)` under the `NVENC - Encoding` section in https://developer.nvidia.com/video-encode-and-decode-gpu-support-matrix-new
+      - SELKIES_ENCODER=nvh264enc
+      - SELKIES_ENABLE_RESIZE=false
+      # Initial video bitrate in kilobits per second, may be changed later within web interface
+      - SELKIES_VIDEO_BITRATE=8000
+      # Initial frames per second, may be changed later within web interface
+      - SELKIES_FRAMERATE=60
+      # Initial audio bitrate in bits per second, may be changed later within web interface
+      - SELKIES_AUDIO_BITRATE=128000
+      # Uncomment if network conditions rapidly fluctuate
+      #    - SELKIES_CONGESTION_CONTROL=true
+      # Enable Basic Authentication from the web interface
+      - SELKIES_ENABLE_BASIC_AUTH=false
+      # Defaults to `PASSWD` if unspecified
+      #    - SELKIES_BASIC_AUTH_PASSWORD=mypasswd
+      # Enable HTTPS web interface from inside the container
+      - SELKIES_ENABLE_HTTPS=false
+      # Volume mount trusted HTTPS certificate to new path for no web browser warnings
+      #    - SELKIES_HTTPS_CERT=/etc/ssl/certs/ssl-cert-snakeoil.pem
+      #    - SELKIES_HTTPS_KEY=/etc/ssl/private/ssl-cert-snakeoil.key
+      ###
+      # Uncomment and configure below to use a TURN server for improved network compatibility
+      ###
+      - SELKIES_TURN_HOST=192.168.2.50
+      - SELKIES_TURN_PORT=3478
+      # Change to `tcp` if the UDP protocol is throttled or blocked in your client network, or when the TURN server does not support UDP
+      - SELKIES_TURN_PROTOCOL=udp
+      # You need a valid hostname and a certificate from authorities such as ZeroSSL or Let's Encrypt with your TURN server to enable TURN over TLS
+      - SELKIES_TURN_TLS=false
+      # Internal TURN server settings, do not uncomment other TURN server settings below this when using an internal TURN server
+      #      - TURN_MIN_PORT=65534
+      #      - TURN_MAX_PORT=65535
+      # Provide only `SELKIES_TURN_SHARED_SECRET` for time-limited shared secret authentication or both `SELKIES_TURN_USERNAME` and `SELKIES_TURN_PASSWORD` for legacy long-term authentication, but do not provide both authentication methods at the same time
+      - SELKIES_TURN_SHARED_SECRET=n0TaRealCoTURNAuthSecretThatIsSixtyFourLengthsLongPlaceholdPlace
+      #        - SELKIES_TURN_USERNAME=username
+      #        - SELKIES_TURN_PASSWORD=mypasswd
+      # TURN REST URI authentication, all TURN server settings above are ignored if enabled
+      - 'SELKIES_TURN_REST_URI=http://localhost:8008'
+
+    # VOLUMES:
+    volumes:
+      # The location of your home directory.
+      - ${HOME_DIR}/:/home/default/:rw
+
+      # The location where all games should be installed.
+      # This path needs to be set as a library path in Steam after logging in.
+      # Otherwise, Steam will store games in the home directory above.
+      - ${GAMES_DIR}/:/mnt/games/:rw
+
+      # Nvidia
+      - /usr/bin/nvidia-xconfig:/usr/bin/nvidia-xconfig
+      - /usr/lib/xorg/modules/drivers/nvidia_drv.so:/usr/lib/xorg/modules/drivers/nvidia_drv.so
+      - /usr/lib/xorg/modules/extensions:/usr/lib/xorg/modules/extensions
