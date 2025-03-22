@@ -685,6 +685,7 @@ RUN \
             vainfo \
             vdpauinfo \
             xvfb \
+            iputils-ping \
     && \
     echo "**** Section cleanup ****" \
         && apt-get clean autoclean -y \
