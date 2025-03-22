@@ -52,7 +52,7 @@ if [ -z "${SELKIES_TURN_REST_URI}" ] && { { [ -z "${SELKIES_TURN_USERNAME}" ] ||
 fi
 
 # Wait for the X server to start
-wait_for_x
+echo 'Waiting for X Socket' && until [ -S "/tmp/.X11-unix/X${DISPLAY#*:}" ]; do sleep 0.5; done && echo 'X Server is ready'
 
 # Configure NGINX
 if [ "$(echo ${SELKIES_ENABLE_BASIC_AUTH} | tr '[:upper:]' '[:lower:]')" != "false" ]; then htpasswd -bcm "${XDG_RUNTIME_DIR}/.htpasswd" "${SELKIES_BASIC_AUTH_USER:-${USER}}" "${SELKIES_BASIC_AUTH_PASSWORD:-${USER_PASSWORD}}"; fi
@@ -151,7 +151,7 @@ server {
     location = /50x.html {
         root /opt/gst-web/;
     }
-}" | tee /etc/nginx/sites-available/default > /dev/null
+}" | sudo tee /etc/nginx/sites-available/default > /dev/null
 
 # Clear the cache registry
 rm -rf "${HOME}/.cache/gstreamer-1.0"

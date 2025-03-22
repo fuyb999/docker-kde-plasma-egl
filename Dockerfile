@@ -1,8 +1,8 @@
 FROM ubuntu:22.04
 LABEL maintainer="Josh.5 <jsunnex@gmail.com>"
-# Update package repos
 ARG DEBIAN_FRONTEND=noninteractive
 
+# Update mirror
 RUN sed -i -E 's/(archive|security).ubuntu.com/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list
 
 # Update locale
@@ -684,6 +684,7 @@ RUN \
             htop \
             vainfo \
             vdpauinfo \
+            xvfb \
     && \
     echo "**** Section cleanup ****" \
         && apt-get clean autoclean -y \
@@ -694,6 +695,7 @@ RUN \
             /tmp/* \
     && \
     echo
+
 
 # Various other tools
 ARG DUMB_INIT_VERSION=1.2.5
@@ -712,6 +714,13 @@ RUN \
             --no-cache-dir \
             git+https://github.com/Steam-Headless/dumb-udev.git@${DUMB_UDEV_VERSION} \
     && \
+    echo
+
+COPY ttf-wps-fonts /tmp/ttf-wps-fonts
+RUN \
+    echo "**** Install ttf-wps-fonts ****" \
+        && /tmp/ttf-wps-fonts/install.sh \
+        && rm -rf /tmp/ttf-wps-fonts \
     echo
 
 # Expose NVIDIA libraries and paths
@@ -749,7 +758,6 @@ ENV PULSE_SERVER="${PULSE_SERVER:-unix:${PULSE_RUNTIME_PATH:-${XDG_RUNTIME_DIR:-
 ENV DBUS_SYSTEM_BUS_ADDRESS="unix:path=${XDG_RUNTIME_DIR:-/tmp}/dbus-system-bus"
 
 # Set container configuration environment variables
-# TODO: Set the default WEBUI_USER & WEBUI_PASS after release of SHUI
 ENV \
     MODE="primary" \
     ENABLE_WOL_POWER_MANAGER="false" \

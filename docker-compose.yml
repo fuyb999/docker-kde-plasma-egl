@@ -66,6 +66,7 @@ services:
       - USER_PASSWORD=${USER_PASSWORD}
       # Mode
       - MODE=${MODE}
+      - HOST_DBUS=false
       # Xorg
       - FORCE_X11_DUMMY_CONFIG=${FORCE_X11_DUMMY_CONFIG}
       # Nvidia specific config

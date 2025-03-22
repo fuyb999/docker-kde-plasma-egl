@@ -68,9 +68,9 @@ function install_nvidia_driver {
         # Download the driver (if it does not yet exist locally)
         download_driver
 
-        if (($(echo $nvidia_host_driver_version | cut -d '.' -f 1) >= 550)); then
-            sed -i 's/--no-multigpu//g' /etc/cont-init.d/70-configure_xorg.sh
-        fi
+#        if (($(echo $nvidia_host_driver_version | cut -d '.' -f 1) >= 550)); then
+#            sed -i 's/--no-multigpu//g' /etc/cont-init.d/70-configure_xorg.sh
+#        fi
 
         if (($(echo $nvidia_host_driver_version | cut -d '.' -f 1) > 500)); then
             print_step_header "Installing NVIDIA driver v${nvidia_host_driver_version:?} to match what is running on the host"
@@ -230,18 +230,20 @@ function install_intel_gpu_driver {
 #    print_header "No AMD device found"
 #fi
 
+# crash gdm restart
+
 # NVIDIA GPU
-if [ "${nvidia_pci_address:-}X" != "X" ]; then
-    print_header "Found NVIDIA device '${nvidia_gpu_name:?}'"
-    install_nvidia_driver
-    patch_nvidia_driver
-elif [ "${NVIDIA_DRIVER_VERSION:-}X" != "X" ]; then
-    export nvidia_host_driver_version="${NVIDIA_DRIVER_VERSION:?}"
-    print_header "Forcing install of NVIDIA driver version '${nvidia_host_driver_version:?}' because the 'NVIDIA_DRIVER_VERSION' variable is set."
-    install_nvidia_driver
-    patch_nvidia_driver
-else
-    print_header "No NVIDIA device found"
-fi
+#if [ "${nvidia_pci_address:-}X" != "X" ]; then
+#    print_header "Found NVIDIA device '${nvidia_gpu_name:?}'"
+#    install_nvidia_driver
+##    patch_nvidia_driver
+#elif [ "${NVIDIA_DRIVER_VERSION:-}X" != "X" ]; then
+#    export nvidia_host_driver_version="${NVIDIA_DRIVER_VERSION:?}"
+#    print_header "Forcing install of NVIDIA driver version '${nvidia_host_driver_version:?}' because the 'NVIDIA_DRIVER_VERSION' variable is set."
+#    install_nvidia_driver
+##    patch_nvidia_driver
+#else
+#    print_header "No NVIDIA device found"
+#fi
 
 echo -e "\e[34mDONE\e[0m"
