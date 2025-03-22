@@ -129,6 +129,9 @@ services:
       # Otherwise, Steam will store games in the home directory above.
       - ${GAMES_DIR}/:/mnt/games/:rw
 
+      # Application dir
+      - /data/container-apps:/opt/apps
+
       # Nvidia
       - /usr/bin/nvidia-xconfig:/usr/bin/nvidia-xconfig
       - /usr/lib/xorg/modules/drivers/nvidia_drv.so:/usr/lib/xorg/modules/drivers/nvidia_drv.so
